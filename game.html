@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI War: Google vs OpenAI vs Meta</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'inter': ['Inter', 'sans-serif'],
+            'jetbrains': ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* Estilos específicos para canvas y animaciones que no se pueden hacer con Tailwind */
+    .google-icon { background: #ea4335; }
+    .openai-icon { 
+      background: #1a1a1a;
+      position: relative;
+      font-size: 0.8rem;
+    }
+    .openai-icon::before {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px; right: 2px; bottom: 2px;
+      background: #1a1a1a;
+      border-radius: 50%;
+      z-index: -1;
+    }
+    .meta-icon { background: linear-gradient(45deg, #1877f2, #42a5f5); }
+    
+    /* Bordes específicos de companies */
+    .rule-google { border-left-color: #ea4335; }
+    .rule-openai { border-left-color: #1a1a1a; }
+    .rule-meta { border-left-color: #1877f2; }
+    
+    .stats-google { border-left-color: #ea4335; }
+    .stats-openai { border-left-color: #1a1a1a; }
+    .stats-meta { border-left-color: #1877f2; }
+    
+    /* Canvas específico */
+    canvas { touch-action: none; }
+    
+    /* Timeline específico */
+    .timeline-progress {
+      background: linear-gradient(90deg, #10b981, #3b82f6);
+    }
+    
+    .timeline-marker {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    .timeline-marker.major {
+      background: #ef4444;
+      height: 30px;
+      width: 4px;
+    }
+    
+    .timeline-marker.major:hover {
+      height: 34px;
+      width: 5px;
+    }
+    
+    /* Range input específico */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      touch-action: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #1e293b;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: #334155;
+      transform: scale(1.1);
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #1e293b;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      touch-action: manipulation;
+    }
+    
+    /* Arena gradient background */
+    .arena::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at center, rgba(59, 130, 246, 0.02) 0%, transparent 70%);
+    }
+    
+    /* Ocultar control de tamaño en móvil/tablet */
+    @media (max-width: 1023px) {
+      .control-group:has(#containerSize) {
+        display: none;
+      }
+    }
+
+
+
+    
+    </style>
+</head>
+<body class="font-inter bg-gradient-to-br from-slate-50 to-slate-200 text-slate-800 min-h-screen relative select-none">
+  <div class="max-w-7xl mx-auto p-2.5 md:p-4 lg:p-5">
+    <!-- Header -->
+    <div class="text-center mb-6 md:mb-8">
+      <h1 class="font-jetbrains font-bold text-2xl md:text-3xl lg:text-4xl text-slate-900 mb-1 tracking-tight">
+        AI War
+      </h1>
+      <p class="text-xs text-slate-400 mb-3">
+        Una demo de 
+        <a href="https://www.linkedin.com/in/eftimiesilviudaniel/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="hover:text-slate-600 transition-colors">
+          Silviu Eftimie
+        </a>
+        × 
+        <a href="https://cursor.com/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="hover:text-slate-600 transition-colors">
+          Cursor
+        </a>
+        × 
+        <a href="https://anthropic.com/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="hover:text-slate-600 transition-colors">
+          Anthropic (Claude-4-Sonnet)
+        </a>
+      </p>
+      <p class="text-sm md:text-base text-slate-600 mb-4">
+        La guerra por el dominio de la IA: <strong>Google ✂️ vs OpenAI 📄 vs Meta 🪨</strong>
+      </p>
+      
+      <!-- Quick Rules -->
+      <div class="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-lg p-3 md:p-4 mb-4 shadow-sm">
+        <div class="flex flex-wrap justify-center gap-2 md:gap-4 text-xs md:text-sm text-slate-600 rules-text">
+          <span class="flex items-center gap-1">✂️ <strong>Google</strong> domina a 📄 <strong>OpenAI</strong></span>
+          <span class="flex items-center gap-1">📄 <strong>OpenAI</strong> conquista a 🪨 <strong>Meta</strong></span>
+          <span class="flex items-center gap-1">🪨 <strong>Meta</strong> aplasta a ✂️ <strong>Google</strong></span>
+        </div>
+        <div class="mt-2 pt-2 border-t border-slate-200 text-center text-xs text-slate-500">
+          💫 <strong>Nuevo:</strong> Con caos activado, cuando dos agentes del mismo tipo se chocan, 
+          ocasionalmente uno cambia de tipo. Nivel 0 = Juego clásico | Nivel 1 = Ligero | Nivel 2 = Moderado
+        </div>
+      </div>
+    </div>
+
+    <!-- Scoreboard - Full Width -->
+    <div class="bg-white border border-slate-200 rounded-lg p-4 md:p-5 shadow-sm mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+        <div class="flex items-center justify-center p-3 bg-slate-50 rounded-lg transition-all duration-300 hover:bg-slate-100 hover:scale-105 border-l-4 stats-google" id="googleStats">
+          <div class="w-10 h-10 mr-3 rounded-full flex items-center justify-center font-semibold text-white shadow-md google-icon">
+            G
+          </div>
+          <div class="text-center">
+            <div class="font-medium text-sm text-slate-800">Google</div>
+            <div class="text-xl font-bold text-slate-900" id="googleCount">0</div>
+          </div>
+        </div>
+        <div class="flex items-center justify-center p-3 bg-slate-50 rounded-lg transition-all duration-300 hover:bg-slate-100 hover:scale-105 border-l-4 stats-openai" id="openaiStats">
+          <div class="w-10 h-10 mr-3 rounded-full flex items-center justify-center font-semibold text-white shadow-md openai-icon">
+            OAI
+          </div>
+          <div class="text-center">
+            <div class="font-medium text-sm text-slate-800">OpenAI</div>
+            <div class="text-xl font-bold text-slate-900" id="openaiCount">0</div>
+          </div>
+        </div>
+        <div class="flex items-center justify-center p-3 bg-slate-50 rounded-lg transition-all duration-300 hover:bg-slate-100 hover:scale-105 border-l-4 stats-meta" id="metaStats">
+          <div class="w-10 h-10 mr-3 rounded-full flex items-center justify-center font-semibold text-white shadow-md meta-icon">
+            M
+          </div>
+          <div class="text-center">
+            <div class="font-medium text-sm text-slate-800">Meta AI</div>
+            <div class="text-xl font-bold text-slate-900" id="metaCount">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Battle Area -->
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 lg:gap-8 items-start">
+      <!-- Battlefield -->
+      <div class="order-2 lg:order-1">
+        <div class="bg-white border border-slate-200 rounded-lg p-4 md:p-6 shadow-sm">
+          <div class="flex justify-center items-center min-h-[350px] md:min-h-[500px] lg:min-h-[600px]">
+            <div class="arena relative w-[90vw] h-[90vw] max-w-[350px] max-h-[350px] md:max-w-[450px] md:max-h-[450px] lg:w-[600px] lg:h-[600px] lg:max-w-none lg:max-h-none bg-white border-2 border-slate-200 rounded-lg shadow-lg overflow-hidden">
+              <canvas id="canvas" class="block w-full h-full rounded-md"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Sidebar -->
+      <div class="order-1 lg:order-2 lg:sticky lg:top-5 space-y-4">
+        <!-- Controls -->
+        <div class="bg-white border border-slate-200 rounded-lg p-4 md:p-5 lg:p-6 shadow-sm">
+          <h3 class="font-semibold text-base md:text-lg text-slate-800 mb-5 flex items-center gap-2">
+            ⚙️ Controles
+          </h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-gray-600 mb-2 text-sm font-medium">Velocidad de Batalla</label>
+              <input type="range" id="speedSlider" min="0.5" max="5" step="0.1" value="1.5" 
+                     class="w-full h-2 bg-slate-200 rounded-lg outline-none slider">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-gray-600 mb-2 text-sm font-medium">Agentes de IA</label>
+                <input type="number" id="totalPoints" min="30" max="300" step="10" value="60"
+                       class="w-full bg-slate-50 border border-gray-300 text-slate-800 px-3 py-3 lg:py-2 rounded-lg font-inter text-base lg:text-sm transition-all focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg focus:shadow-blue-100 min-h-[44px] lg:min-h-[auto]">
+              </div>
+              <div>
+                <label class="block text-gray-600 mb-2 text-sm font-medium">Tamaño</label>
+                <input type="number" id="containerSize" min="400" max="800" step="50" value="450"
+                       class="w-full bg-slate-50 border border-gray-300 text-slate-800 px-3 py-3 lg:py-2 rounded-lg font-inter text-base lg:text-sm transition-all focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg focus:shadow-blue-100 min-h-[44px] lg:min-h-[auto]">
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-gray-600 mb-2 text-sm font-medium">💫 Nivel de Caos</label>
+              <input type="range" id="chaosSlider" min="0" max="2" step="1" value="1" 
+                     class="w-full h-2 bg-slate-200 rounded-lg outline-none slider">
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Clásico</span>
+                <span>Ligero</span>
+                <span>Moderado</span>
+              </div>
+            </div>
+            
+            <!-- Personalización de Competidores -->
+            <div class="border-t pt-4">
+              <h4 class="text-sm font-medium text-gray-700 mb-3">🏢 Personalizar Competidores</h4>
+              <div class="space-y-3">
+                <div class="grid grid-cols-[1fr_auto] gap-2">
+                  <input type="text" id="company1Name" placeholder="Google" maxlength="15"
+                         class="bg-slate-50 border border-gray-300 text-slate-800 px-2 py-2 lg:py-1.5 rounded text-sm transition-all focus:outline-none focus:border-red-400 focus:bg-white min-h-[44px] lg:min-h-[auto]">
+                  <input type="text" id="company1Symbol" placeholder="G" maxlength="3"
+                         class="w-12 lg:w-10 bg-slate-50 border border-gray-300 text-slate-800 px-1 py-2 lg:py-1.5 rounded text-sm text-center transition-all focus:outline-none focus:border-red-400 focus:bg-white min-h-[44px] lg:min-h-[auto]">
+                </div>
+                <div class="grid grid-cols-[1fr_auto] gap-2">
+                  <input type="text" id="company2Name" placeholder="OpenAI" maxlength="15"
+                         class="bg-slate-50 border border-gray-300 text-slate-800 px-2 py-2 lg:py-1.5 rounded text-sm transition-all focus:outline-none focus:border-gray-700 focus:bg-white min-h-[44px] lg:min-h-[auto]">
+                  <input type="text" id="company2Symbol" placeholder="OAI" maxlength="3"
+                         class="w-12 lg:w-10 bg-slate-50 border border-gray-300 text-slate-800 px-1 py-2 lg:py-1.5 rounded text-sm text-center transition-all focus:outline-none focus:border-gray-700 focus:bg-white min-h-[44px] lg:min-h-[auto]">
+                </div>
+                <div class="grid grid-cols-[1fr_auto] gap-2">
+                  <input type="text" id="company3Name" placeholder="Meta AI" maxlength="15"
+                         class="bg-slate-50 border border-gray-300 text-slate-800 px-2 py-2 lg:py-1.5 rounded text-sm transition-all focus:outline-none focus:border-blue-500 focus:bg-white min-h-[44px] lg:min-h-[auto]">
+                  <input type="text" id="company3Symbol" placeholder="M" maxlength="3"
+                         class="w-12 lg:w-10 bg-slate-50 border border-gray-300 text-slate-800 px-1 py-2 lg:py-1.5 rounded text-sm text-center transition-all focus:outline-none focus:border-blue-500 focus:bg-white min-h-[44px] lg:min-h-[auto]">
+                </div>
+              </div>
+            </div>
+            
+            <button class="w-full bg-slate-800 text-white font-medium py-3 lg:py-2 px-5 rounded-lg transition-all hover:bg-slate-700 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 min-h-[48px] lg:min-h-[auto]" id="restartBtn">
+              🔄 Nueva Guerra
+            </button>
+          </div>
+        </div>
+
+        <!-- Timeline - Desktop Sidebar -->
+        <div class="hidden lg:block bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+          <div class="flex flex-col gap-2 mb-4">
+            <h4 class="text-base font-semibold text-slate-800">📊 Batalla</h4>
+            <div class="flex justify-between text-xs text-slate-600">
+              <span>Ronda: <span class="font-semibold text-slate-800" id="currentRoundDisplay2">0</span></span>
+              <span>Total: <span class="font-semibold text-slate-800" id="totalRoundsDisplay2">0</span></span>
+            </div>
+          </div>
+          
+          <div class="relative h-8 bg-slate-100 rounded-lg mb-3 overflow-hidden">
+            <div class="timeline-progress absolute top-0 left-0 h-full rounded-lg transition-all duration-300 w-0" id="timelineProgress2"></div>
+            <div class="absolute inset-0 flex items-center px-1" id="timelineMarkers2"></div>
+          </div>
+          
+          <div class="relative mb-3">
+            <input type="range" id="replaySlider2" min="0" max="0" value="0" step="1" 
+                   class="w-full h-2 bg-slate-200 rounded-lg outline-none">
+            <div class="flex justify-between mt-1 text-xs text-slate-500">
+              <span>Inicio</span>
+              <span>Fin</span>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-1">
+            <button class="bg-slate-50 text-slate-800 border border-slate-200 px-2 py-1.5 rounded text-xs font-inter transition-all hover:bg-slate-200 hover:border-slate-300 flex items-center justify-center gap-1 replay-btn" id="pauseBtn2">
+              ⏸️ Pausa
+            </button>
+            <button class="bg-slate-50 text-slate-800 border border-slate-200 px-2 py-1.5 rounded text-xs font-inter transition-all hover:bg-slate-200 hover:border-slate-300 flex items-center justify-center gap-1 replay-btn hidden" id="playBtn2">
+              ▶️ Play
+            </button>
+            <button class="bg-slate-50 text-slate-800 border border-slate-200 px-2 py-1.5 rounded text-xs font-inter transition-all hover:bg-slate-200 hover:border-slate-300 flex items-center justify-center gap-1 replay-btn" id="liveBtn2">
+              🔴 Vivo
+            </button>
+            <button class="bg-slate-50 text-slate-800 border border-slate-200 px-2 py-1.5 rounded text-xs font-inter transition-all hover:bg-slate-200 hover:border-slate-300 flex items-center justify-center gap-1 replay-btn" id="exportBtn2">
+              📁 Data
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline - Mobile/Tablet Only -->
+    <div class="lg:hidden mt-6 bg-white border border-slate-200 rounded-lg p-4 md:p-5 shadow-sm">
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-4 mb-4">
+        <h4 class="text-base md:text-lg font-semibold text-slate-800">📊 Timeline de Batalla</h4>
+        <div class="flex gap-4 text-sm text-slate-600">
+          <span class="flex items-center gap-1">Ronda: <span class="font-semibold text-slate-800" id="currentRoundDisplay">0</span></span>
+          <span class="flex items-center gap-1">Total: <span class="font-semibold text-slate-800" id="totalRoundsDisplay">0</span></span>
+        </div>
+      </div>
+      
+      <div class="relative h-11 bg-slate-100 rounded-lg mb-4 overflow-hidden">
+        <div class="timeline-progress absolute top-0 left-0 h-full rounded-lg transition-all duration-300 w-0" id="timelineProgress"></div>
+        <div class="absolute inset-0 flex items-center px-2" id="timelineMarkers"></div>
+      </div>
+      
+      <div class="relative">
+        <input type="range" id="replaySlider" min="0" max="0" value="0" step="1" 
+               class="w-full h-2 bg-slate-200 rounded-lg outline-none">
+        <div class="flex justify-between mt-2 text-xs text-slate-500">
+          <span>Inicio</span>
+          <span>Puntos Clave</span>
+          <span>Fin</span>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap justify-center gap-2 mt-4">
+        <button class="bg-slate-50 text-slate-800 border border-slate-200 px-3 py-2 rounded-md text-xs md:text-sm font-inter transition-all hover:bg-slate-200 hover:border-slate-300 flex items-center gap-1 min-h-[44px] md:min-h-[auto] replay-btn" id="pauseBtn">
+          ⏸️ Pausar
+        </button>
+        <button class="bg-slate-50 text-slate-800 border border-slate-200 px-3 py-2 rounded-md text-xs md:text-sm font-inter transition-all hover:bg-slate-200 hover:border-slate-300 flex items-center gap-1 min-h-[44px] md:min-h-[auto] replay-btn hidden" id="playBtn">
+          ▶️ Continuar
+        </button>
+        <button class="bg-slate-50 text-slate-800 border border-slate-200 px-3 py-2 rounded-md text-xs md:text-sm font-inter transition-all hover:bg-slate-200 hover:border-slate-300 flex items-center gap-1 min-h-[44px] md:min-h-[auto] replay-btn" id="liveBtn">
+          🔴 Volver a Vivo
+        </button>
+        <button class="bg-slate-50 text-slate-800 border border-slate-200 px-3 py-2 rounded-md text-xs md:text-sm font-inter transition-all hover:bg-slate-200 hover:border-slate-300 flex items-center gap-1 min-h-[44px] md:min-h-[auto] replay-btn" id="exportBtn">
+          📁 Exportar Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-8 pt-6 border-t border-slate-200">
+    <div class="text-center text-xs text-slate-500">
+      <p class="mb-1">
+        Una demo de
+        <a href="https://www.linkedin.com/in/eftimiesilviudaniel/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="font-medium text-slate-700 hover:text-slate-900 transition-colors">
+          Silviu Eftimie
+        </a>
+        × 
+        <a href="https://cursor.com/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="font-medium text-slate-700 hover:text-slate-900 transition-colors">
+          Cursor
+        </a>
+        × 
+        <a href="https://anthropic.com/" 
+           target="_blank" 
+           rel="noopener noreferrer"
+           class="font-medium text-slate-700 hover:text-slate-900 transition-colors">
+          Anthropic (Claude-4-Sonnet)
+        </a>
+      </p>
+      <p class="text-slate-400">
+        Simulación de guerra de IA basada en piedra, papel, tijeras
+      </p>
+    </div>
+  </footer>
+
+  <!-- Winner Banner -->
+  <div class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm" id="winnerBanner">
+    <div class="bg-white rounded-xl p-6 md:p-8 lg:p-10 text-center shadow-2xl max-w-sm md:max-w-md mx-4 w-full md:w-auto">
+      <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-4" id="winnerTitle">🏆 ¡Victoria!</h2>
+      <p class="text-base md:text-lg text-slate-600 mb-6 leading-relaxed" id="winnerText">¡Ha conquistado el futuro de la IA!</p>
+      <button onclick="closeWinnerBanner()" class="bg-slate-800 text-white font-medium py-3 px-6 rounded-lg transition-all hover:bg-slate-700 active:scale-95 min-h-[48px] lg:min-h-[auto]">
+        Ver Batalla
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Configuración de colores para cada empresa (representativos y distintivos)
+    const companyColors = {
+      google: {
+        primary: '#ea4335',
+        secondary: '#fbbc05',
+        tertiary: '#34a853',
+        quaternary: '#4285f4',
+        trail: 'rgba(234, 67, 53, 0.3)'
+      },
+      openai: {
+        primary: '#1a1a1a',
+        secondary: '#1a1a1a',
+        tertiary: '#343541',
+        quaternary: '#444654',
+        trail: 'rgba(26, 26, 26, 0.4)'
+      },
+      meta: {
+        primary: '#1877f2',
+        secondary: '#42a5f5',
+        tertiary: '#1565c0',
+        quaternary: '#0d47a1',
+        trail: 'rgba(24, 119, 242, 0.3)'
+      }
+    };
+
+    // Mapeo de tipos
+    const typeMapping = {
+      rock: 'meta',
+      paper: 'openai',
+      scissors: 'google'
+    };
+
+    // Variables para personalización
+    let companyNames = {
+      google: 'Google',
+      openai: 'OpenAI',
+      meta: 'Meta AI'
+    };
+
+    let companySymbols = {
+      google: 'G',
+      openai: 'OAI',
+      meta: 'M'
+    };
+
+    // Configuración simple de caos (solo colisiones entre mismo tipo)
+    const CHAOS_CONFIG = {
+      sameTypeCollisionRate: 0.02, // 2% probabilidad de conversión en colisión mismo tipo
+      velocityVariation: 0.1, // 10% variación en velocidades (mínima)
+      sizeVariation: 0.05 // 5% variación en tamaños (mínima)
+    };
+
+    // Función para detectar si el juego está cerca del final
+    function isGameNearEnd(counts) {
+      const typesLeft = Object.values(counts).filter(c => c > 0).length;
+      if (typesLeft > 2) return false;
+      
+      const totalAgents = Object.values(counts).reduce((a, b) => a + b, 0);
+      const sortedCounts = Object.values(counts).filter(c => c > 0).sort((a, b) => b - a);
+      
+      // Si quedan 2 tipos y uno tiene menos del 20% de agentes, estamos cerca del final
+      if (typesLeft === 2) {
+        const minorityPercentage = sortedCounts[1] / totalAgents;
+        return minorityPercentage < 0.2;
+      }
+      
+      return false;
+    }
+
+    // Función para calcular factor de reducción de caos cerca del final
+    function getChaosReductionFactor() {
+      const counts = { rock: 0, paper: 0, scissors: 0 };
+      points.forEach(p => counts[p.type]++);
+      
+      if (!isGameNearEnd(counts)) return 1.0;
+      
+      const typesLeft = Object.values(counts).filter(c => c > 0).length;
+      const totalAgents = Object.values(counts).reduce((a, b) => a + b, 0);
+      
+      if (typesLeft === 2) {
+        const sortedCounts = Object.values(counts).filter(c => c > 0).sort((a, b) => b - a);
+        const minorityPercentage = sortedCounts[1] / totalAgents;
+        
+        // Reducir caos exponencialmente cuando la minoría es muy pequeña
+        if (minorityPercentage < 0.05) return 0.05; // 95% reducción
+        if (minorityPercentage < 0.1) return 0.2;   // 80% reducción
+        if (minorityPercentage < 0.2) return 0.5;   // 50% reducción
+      }
+      
+      return 1.0;
+    }
+
+    // Cargar personalización desde localStorage
+    function loadCustomization() {
+      const savedNames = localStorage.getItem('aiWarsCustomNames');
+      const savedSymbols = localStorage.getItem('aiWarsCustomSymbols');
+      
+      if (savedNames) {
+        companyNames = { ...companyNames, ...JSON.parse(savedNames) };
+      }
+      
+      if (savedSymbols) {
+        companySymbols = { ...companySymbols, ...JSON.parse(savedSymbols) };
+      }
+      
+      // Actualizar inputs
+      document.getElementById('company1Name').value = companyNames.google;
+      document.getElementById('company1Symbol').value = companySymbols.google;
+      document.getElementById('company2Name').value = companyNames.openai;
+      document.getElementById('company2Symbol').value = companySymbols.openai;
+      document.getElementById('company3Name').value = companyNames.meta;
+      document.getElementById('company3Symbol').value = companySymbols.meta;
+      
+      updateAllLabels();
+    }
+
+    // Guardar personalización en localStorage
+    function saveCustomization() {
+      localStorage.setItem('aiWarsCustomNames', JSON.stringify(companyNames));
+      localStorage.setItem('aiWarsCustomSymbols', JSON.stringify(companySymbols));
+    }
+
+    // Actualizar todos los labels en la UI
+    function updateAllLabels() {
+      // Actualizar scoreboard - nombres de empresas
+      const googleName = document.getElementById('googleStats').querySelector('.font-medium.text-sm.text-slate-800');
+      const openaiName = document.getElementById('openaiStats').querySelector('.font-medium.text-sm.text-slate-800');
+      const metaName = document.getElementById('metaStats').querySelector('.font-medium.text-sm.text-slate-800');
+      
+      if (googleName) googleName.innerText = companyNames.google;
+      if (openaiName) openaiName.innerText = companyNames.openai;
+      if (metaName) metaName.innerText = companyNames.meta;
+      
+      // Actualizar iconos del scoreboard
+      const googleIcon = document.getElementById('googleStats').querySelector('.google-icon');
+      const openaiIcon = document.getElementById('openaiStats').querySelector('.openai-icon');
+      const metaIcon = document.getElementById('metaStats').querySelector('.meta-icon');
+      
+      if (googleIcon) googleIcon.innerText = companySymbols.google;
+      if (openaiIcon) openaiIcon.innerText = companySymbols.openai;
+      if (metaIcon) metaIcon.innerText = companySymbols.meta;
+      
+      // Actualizar título de la página
+      document.title = `AI War: ${companyNames.google} vs ${companyNames.openai} vs ${companyNames.meta}`;
+      
+      // Actualizar descripción principal
+      const gameDescriptionP = document.querySelector('p.text-sm.md\\:text-base.text-slate-600.mb-4');
+      if (gameDescriptionP) {
+        gameDescriptionP.innerHTML = `
+          La guerra por el dominio de la IA: 
+          <strong>${companyNames.google} ✂️ vs ${companyNames.openai} 📄 vs ${companyNames.meta} 🪨</strong>
+        `;
+      }
+      
+      // Actualizar reglas
+      const rulesText = document.querySelector('.rules-text');
+      if (rulesText) {
+        rulesText.innerHTML = `
+          <span class="text-red-500">✂️ ${companyNames.google}</span> domina a 
+          <span class="text-gray-700">📄 ${companyNames.openai}</span> • 
+          <span class="text-gray-700">📄 ${companyNames.openai}</span> conquista a 
+          <span class="text-blue-500">🪨 ${companyNames.meta}</span> • 
+          <span class="text-blue-500">🪨 ${companyNames.meta}</span> aplasta a 
+          <span class="text-red-500">✂️ ${companyNames.google}</span>
+        `;
+      }
+    }
+
+    const rules = {
+      rock: 'scissors',
+      scissors: 'paper',
+      paper: 'rock'
+    };
+
+    const TYPES = ['rock', 'paper', 'scissors'];
+    let points = [];
+    let particles = []; // Para efectos de colisión
+    let chaosZones = []; // Zonas con efectos especiales
+    const radius = 16;
+    let speed = parseFloat(document.getElementById('speedSlider').value);
+    let TOTAL = parseInt(document.getElementById('totalPoints').value);
+    let size = parseInt(document.getElementById('containerSize').value);
+    let animId;
+    let gameEnded = false;
+    let roundHistory = []; // Historial de rondas
+    let currentRound = 0;
+    let isReplaying = false;
+    let replayData = null;
+    let isPaused = false;
+
+    // Función simplificada - ya no hay zonas de caos
+    function generateChaosZones() {
+      chaosZones = [];
+    }
+
+    function resizeCanvas() {
+      const containerSizeInput = parseInt(document.getElementById('containerSize').value);
+      const arena = document.querySelector('.arena');
+      
+      // En móvil, usar el tamaño responsive del CSS
+      if (window.innerWidth < 768) {
+        const arenaRect = arena.getBoundingClientRect();
+        size = Math.min(arenaRect.width, arenaRect.height);
+      } else {
+        // En desktop, usar el valor del input
+        size = containerSizeInput;
+        arena.style.width = size + 'px';
+        arena.style.height = size + 'px';
+      }
+      
+      canvas.width = size;
+      canvas.height = size;
+      
+      // Regenerar zonas de caos cuando cambie el tamaño
+      generateChaosZones();
+    }
+
+    function createPoints() {
+      points = [];
+      
+      // Calcular distribución exacta
+      const pointsPerType = Math.floor(TOTAL / 3);
+      const remainder = TOTAL % 3;
+      
+      // Crear array con distribución igual
+      const typeDistribution = [];
+      
+      // Agregar puntos iguales para cada tipo
+      for (let i = 0; i < 3; i++) {
+        const type = TYPES[i];
+        const count = pointsPerType + (i < remainder ? 1 : 0); // Distribuir el resto
+        for (let j = 0; j < count; j++) {
+          typeDistribution.push(type);
+        }
+      }
+      
+      // Mezclar aleatoriamente el array
+      for (let i = typeDistribution.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [typeDistribution[i], typeDistribution[j]] = [typeDistribution[j], typeDistribution[i]];
+      }
+      
+      // Crear los puntos con distribución simple y aleatoria
+      for (let i = 0; i < TOTAL; i++) {
+        // Posición aleatoria simple
+        const x = Math.random() * (canvas.width - 60) + 30;
+        const y = Math.random() * (canvas.height - 60) + 30;
+        
+        // Velocidad con ligera variación
+        const baseSpeed = speed * (1 + (Math.random() - 0.5) * CHAOS_CONFIG.velocityVariation);
+        const velocityAngle = Math.random() * Math.PI * 2;
+        
+        // Tamaño con ligera variación
+        const pointRadius = radius * (1 + (Math.random() - 0.5) * CHAOS_CONFIG.sizeVariation);
+        
+        points.push({
+          type: typeDistribution[i],
+          x: x,
+          y: y,
+          dx: Math.cos(velocityAngle) * baseSpeed,
+          dy: Math.sin(velocityAngle) * baseSpeed,
+          radius: pointRadius,
+          isElite: false, // No más agentes élite
+          trail: [{ x: x, y: y }], // Historial de posiciones para el rastro
+          lastCollision: 0 // Timestamp de la última colisión
+        });
+      }
+      
+      gameEnded = false;
+      
+      // Generar zonas de caos
+      generateChaosZones();
+      
+      // Inicializar historial
+      roundHistory = [];
+      currentRound = 0;
+      
+      // Guardar estado inicial
+      const initialState = {
+        round: 0,
+        points: JSON.parse(JSON.stringify(points.map(p => ({ type: p.type, x: p.x, y: p.y, isElite: false })))),
+        counts: { rock: 0, paper: 0, scissors: 0 },
+        description: "Estado inicial"
+      };
+      
+      // Calcular conteos iniciales
+      points.forEach(p => initialState.counts[p.type]++);
+      roundHistory.push(initialState);
+      
+      updateTimelineDisplay();
+    }
+
+    function updateHUD() {
+      const counts = { rock: 0, paper: 0, scissors: 0 };
+      points.forEach(p => counts[p.type]++);
+      
+      document.getElementById('googleCount').innerText = counts.scissors;
+      document.getElementById('openaiCount').innerText = counts.paper;
+      document.getElementById('metaCount').innerText = counts.rock;
+
+      // Efectos visuales sutiles
+      updateHUDEffects(counts);
+
+      const typesLeft = Object.values(counts).filter(c => c > 0);
+      if (typesLeft.length === 1 && !gameEnded) {
+        gameEnded = true;
+        cancelAnimationFrame(animId);
+        
+        // Registrar ronda final
+        if (!isReplaying) {
+          const winnerType = Object.keys(counts).find(k => counts[k] > 0);
+          const finalRound = {
+            round: currentRound + 1,
+            points: JSON.parse(JSON.stringify(points.map(p => ({ type: p.type, x: p.x, y: p.y })))),
+            counts: counts,
+            description: `¡${companyNames[typeMapping[winnerType]]} gana la guerra!`,
+            isWinner: true
+          };
+          
+          roundHistory.push(finalRound);
+          updateTimelineDisplay();
+        }
+        
+        showWinner(counts);
+      }
+    }
+
+    function updateHUDEffects(counts) {
+      const total = TOTAL;
+      const googlePercent = counts.scissors / total;
+      const openaiPercent = counts.paper / total;
+      const metaPercent = counts.rock / total;
+
+      // Efectos visuales más sutiles
+      document.getElementById('googleStats').style.opacity = 0.6 + (googlePercent * 0.4);
+      document.getElementById('openaiStats').style.opacity = 0.6 + (openaiPercent * 0.4);
+      document.getElementById('metaStats').style.opacity = 0.6 + (metaPercent * 0.4);
+    }
+
+    function showWinner(counts) {
+      const winner = Object.keys(counts).find(k => counts[k] > 0);
+      const companyName = {
+        scissors: companyNames.google,
+        paper: companyNames.openai,
+        rock: companyNames.meta
+      }[winner];
+
+      document.getElementById('winnerTitle').innerText = `🏆 ${companyName} Gana!`;
+      document.getElementById('winnerText').innerText = `${companyName} ha conquistado el dominio total de la IA.`;
+      document.getElementById('winnerBanner').style.display = 'flex';
+      
+      // Ocultar ambos conjuntos de controles de play/pause cuando el juego termine
+      const pauseBtn = document.getElementById('pauseBtn');
+      const pauseBtn2 = document.getElementById('pauseBtn2');
+      const playBtn = document.getElementById('playBtn');
+      const playBtn2 = document.getElementById('playBtn2');
+      
+      if (pauseBtn) pauseBtn.style.display = 'none';
+      if (pauseBtn2) pauseBtn2.style.display = 'none';
+      if (playBtn) playBtn.style.display = 'none';
+      if (playBtn2) playBtn2.style.display = 'none';
+    }
+
+    function closeWinnerBanner() {
+      document.getElementById('winnerBanner').style.display = 'none';
+      // No reiniciar automáticamente - permitir que el usuario explore el timeline
+    }
+
+    function drawTrail(trail, company) {
+      if (trail.length < 2) return;
+      
+      const colors = companyColors[company];
+      
+      // Dibujar rastro
+      ctx.strokeStyle = colors.trail;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      ctx.beginPath();
+      ctx.moveTo(trail[0].x, trail[0].y);
+      
+      for (let i = 1; i < trail.length; i++) {
+        const alpha = i / trail.length;
+        ctx.globalAlpha = alpha * 0.6;
+        ctx.lineTo(trail[i].x, trail[i].y);
+      }
+      
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawAgent(x, y, type, trail, lastCollision, isElite, agentRadius) {
+      const company = typeMapping[type];
+      const colors = companyColors[company];
+      
+      // Dibujar rastro primero
+      drawTrail(trail, company);
+      
+      // Efecto de colisión
+      const timeSinceCollision = Date.now() - lastCollision;
+      const isColliding = timeSinceCollision < 300; // 300ms de efecto
+      
+      if (isColliding) {
+        // Efecto de glow cuando hay colisión
+        ctx.shadowColor = colors.primary;
+        ctx.shadowBlur = 20;
+        
+        // Anillos de expansión
+        const expansionFactor = 1 + (300 - timeSinceCollision) / 300;
+        ctx.strokeStyle = colors.primary;
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(x, y, agentRadius * expansionFactor, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      
+      // Círculo principal con gradiente específico por empresa
+      let gradient;
+      if (company === 'google') {
+        // Color sólido rojo para Google
+        gradient = ctx.createRadialGradient(x, y, 0, x, y, agentRadius);
+        gradient.addColorStop(0, '#ea4335');
+        gradient.addColorStop(1, '#ea4335');
+      } else if (company === 'openai') {
+        // Color sólido negro para OpenAI
+        gradient = ctx.createRadialGradient(x, y, 0, x, y, agentRadius);
+        gradient.addColorStop(0, '#1a1a1a');
+        gradient.addColorStop(1, '#1a1a1a');
+      } else { // meta
+        // Gradiente azul de Meta
+        gradient = ctx.createRadialGradient(x, y, 0, x, y, agentRadius);
+        gradient.addColorStop(0, colors.secondary);
+        gradient.addColorStop(1, colors.primary);
+      }
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, agentRadius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Resetear sombra
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      
+      // Símbolo de la empresa
+      ctx.fillStyle = 'white';
+      const fontSize = company === 'openai' ? Math.max(8, agentRadius * 0.5) : Math.max(10, agentRadius * 0.6);
+      ctx.font = `bold ${fontSize}px Inter`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      const symbol = {
+        google: companySymbols.google,
+        openai: companySymbols.openai,
+        meta: companySymbols.meta
+      }[company];
+      
+      ctx.fillText(symbol, x, y);
+      
+      // Borde distintivo
+      ctx.strokeStyle = company === 'openai' ? '#1a1a1a' : 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, agentRadius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function draw() {
+      // Fondo limpio con ligero fade para los rastros
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Dibujar agentes con sus rastros y efectos
+      points.forEach(p => {
+        drawAgent(p.x, p.y, p.type, p.trail, p.lastCollision, p.isElite, p.radius);
+      });
+      
+      // Dibujar partículas de colisión
+      particles.forEach((particle, index) => {
+        particle.life -= 0.02;
+        if (particle.life <= 0) {
+          particles.splice(index, 1);
+          return;
+        }
+        
+        ctx.globalAlpha = particle.life;
+        ctx.fillStyle = particle.color;
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Actualizar posición
+        particle.x += particle.dx;
+        particle.y += particle.dy;
+        particle.size *= 0.98;
+      });
+      
+      ctx.globalAlpha = 1;
+    }
+
+    function bounce(p) {
+      if (p.x <= p.radius || p.x >= canvas.width - p.radius) {
+        p.dx *= -1;
+        p.x = Math.max(p.radius, Math.min(canvas.width - p.radius, p.x));
+      }
+      if (p.y <= p.radius || p.y >= canvas.height - p.radius) {
+        p.dy *= -1;
+        p.y = Math.max(p.radius, Math.min(canvas.height - p.radius, p.y));
+      }
+    }
+
+    function move() {
+      points.forEach(p => {
+        p.x += p.dx;
+        p.y += p.dy;
+        bounce(p);
+        
+        // Actualizar rastro
+        p.trail.push({ x: p.x, y: p.y });
+        
+        // Limitar el tamaño del rastro
+        const maxTrailLength = 15;
+        if (p.trail.length > maxTrailLength) {
+          p.trail.shift();
+        }
+      });
+    }
+
+    function createCollisionEffect(x, y, winnerType, loserType) {
+      const winnerCompany = typeMapping[winnerType];
+      const loserCompany = typeMapping[loserType];
+      const winnerColors = companyColors[winnerCompany];
+      const loserColors = companyColors[loserCompany];
+      
+      // Crear partículas de la colisión
+      for (let i = 0; i < 8; i++) {
+        const angle = (Math.PI * 2 * i) / 8;
+        const speed = 2 + Math.random() * 3;
+        
+        // Partículas del ganador
+        particles.push({
+          x: x,
+          y: y,
+          dx: Math.cos(angle) * speed,
+          dy: Math.sin(angle) * speed,
+          size: 3 + Math.random() * 4,
+          color: winnerColors.primary,
+          life: 1
+        });
+        
+        // Partículas del perdedor (más pequeñas)
+        particles.push({
+          x: x,
+          y: y,
+          dx: Math.cos(angle + Math.PI/8) * speed * 0.7,
+          dy: Math.sin(angle + Math.PI/8) * speed * 0.7,
+          size: 2 + Math.random() * 2,
+          color: loserColors.primary,
+          life: 0.7
+        });
+      }
+    }
+
+    function createMutationEffect(x, y, newType) {
+      const company = typeMapping[newType];
+      const colors = companyColors[company];
+      
+      // Crear partículas de mutación (más espectaculares)
+      for (let i = 0; i < 12; i++) {
+        const angle = (Math.PI * 2 * i) / 12;
+        const speed = 1 + Math.random() * 2;
+        
+        particles.push({
+          x: x,
+          y: y,
+          dx: Math.cos(angle) * speed,
+          dy: Math.sin(angle) * speed,
+          size: 2 + Math.random() * 3,
+          color: colors.primary,
+          life: 1.2
+        });
+        
+        // Partículas doradas para indicar mutación
+        particles.push({
+          x: x,
+          y: y,
+          dx: Math.cos(angle + Math.PI/6) * speed * 0.5,
+          dy: Math.sin(angle + Math.PI/6) * speed * 0.5,
+          size: 1 + Math.random() * 2,
+          color: '#ffd700',
+          life: 0.8
+        });
+      }
+    }
+
+    function handleCollisions() {
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          const a = points[i];
+          const b = points[j];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          const collisionDistance = (a.radius + b.radius) * 0.9; // Permitir cierta superposición
+          
+          if (dist < collisionDistance) {
+            // Punto de colisión
+            const collisionX = (a.x + b.x) / 2;
+            const collisionY = (a.y + b.y) / 2;
+            const now = Date.now();
+            
+            if (a.type !== b.type) {
+              // Colisión entre tipos diferentes (reglas normales)
+              
+              if (rules[a.type] === b.type) {
+                // A gana, B se convierte
+                createCollisionEffect(collisionX, collisionY, a.type, b.type);
+                const oldType = b.type;
+                b.type = a.type;
+                a.lastCollision = now;
+                b.lastCollision = now;
+                
+                // Cambiar direcciones aleatoriamente después de la colisión
+                const newSpeed = Math.hypot(a.dx, a.dy);
+                const angleA = Math.random() * Math.PI * 2;
+                const angleB = Math.random() * Math.PI * 2;
+                
+                a.dx = Math.cos(angleA) * newSpeed;
+                a.dy = Math.sin(angleA) * newSpeed;
+                b.dx = Math.cos(angleB) * newSpeed;
+                b.dy = Math.sin(angleB) * newSpeed;
+                
+                // Registrar ronda
+                if (!isReplaying) {
+                  recordRound(a.type, oldType, collisionX, collisionY);
+                }
+              } else if (rules[b.type] === a.type) {
+                // B gana, A se convierte
+                createCollisionEffect(collisionX, collisionY, b.type, a.type);
+                const oldType = a.type;
+                a.type = b.type;
+                a.lastCollision = now;
+                b.lastCollision = now;
+                
+                // Cambiar direcciones aleatoriamente después de la colisión
+                const newSpeed = Math.hypot(b.dx, b.dy);
+                const angleA = Math.random() * Math.PI * 2;
+                const angleB = Math.random() * Math.PI * 2;
+                
+                a.dx = Math.cos(angleA) * newSpeed;
+                a.dy = Math.sin(angleA) * newSpeed;
+                b.dx = Math.cos(angleB) * newSpeed;
+                b.dy = Math.sin(angleB) * newSpeed;
+                
+                // Registrar ronda
+                if (!isReplaying) {
+                  recordRound(b.type, oldType, collisionX, collisionY);
+                }
+              }
+            } else {
+              // Colisión entre mismo tipo - nueva mecánica!
+              const chaosReduction = getChaosReductionFactor();
+              const sameTypeCollisionRate = CHAOS_CONFIG.sameTypeCollisionRate * chaosReduction;
+              
+              if (Math.random() < sameTypeCollisionRate && !isReplaying) {
+                // Uno de los dos se convierte aleatoriamente
+                const victim = Math.random() < 0.5 ? a : b;
+                const oldType = victim.type;
+                
+                // Elegir un tipo diferente aleatoriamente
+                const availableTypes = TYPES.filter(t => t !== victim.type);
+                const newType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+                
+                victim.type = newType;
+                victim.lastCollision = now;
+                a.lastCollision = now;
+                b.lastCollision = now;
+                
+                // Efecto visual especial para conversión caótica
+                createMutationEffect(collisionX, collisionY, newType);
+                
+                // Cambiar direcciones
+                const newSpeed = Math.hypot(victim.dx, victim.dy);
+                const angleA = Math.random() * Math.PI * 2;
+                const angleB = Math.random() * Math.PI * 2;
+                
+                a.dx = Math.cos(angleA) * newSpeed;
+                a.dy = Math.sin(angleA) * newSpeed;
+                b.dx = Math.cos(angleB) * newSpeed;
+                b.dy = Math.sin(angleB) * newSpeed;
+                
+                // Registrar ronda especial
+                recordRound(newType, oldType, collisionX, collisionY, true);
+              } else {
+                // Rebote simple entre mismo tipo
+                const angle = Math.atan2(b.y - a.y, b.x - a.x);
+                const speed1 = Math.hypot(a.dx, a.dy);
+                const speed2 = Math.hypot(b.dx, b.dy);
+                
+                a.dx = -Math.cos(angle) * speed1;
+                a.dy = -Math.sin(angle) * speed1;
+                b.dx = Math.cos(angle) * speed2;
+                b.dy = Math.sin(angle) * speed2;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function loop() {
+      if (isPaused) return;
+      
+      // Solo continuar simulación si el juego no ha terminado
+      if (!gameEnded) {
+        speed = parseFloat(document.getElementById('speedSlider').value);
+        
+        // Actualizar velocidades
+        points.forEach(p => {
+          const currentSpeed = Math.hypot(p.dx, p.dy);
+          if (currentSpeed > 0) {
+            p.dx = (p.dx / currentSpeed) * speed;
+            p.dy = (p.dy / currentSpeed) * speed;
+          }
+        });
+        
+        move();
+        handleCollisions();
+      }
+      
+      draw();
+      updateHUD();
+      
+      // Continuar el loop solo si el juego no ha terminado
+      if (!gameEnded) {
+        animId = requestAnimationFrame(loop);
+      }
+    }
+
+    function recordRound(winnerType, loserType, x, y, isChaotic = false) {
+      currentRound++;
+      const counts = { rock: 0, paper: 0, scissors: 0 };
+      points.forEach(p => counts[p.type]++);
+      
+      const winnerCompany = typeMapping[winnerType];
+      const loserCompany = typeMapping[loserType];
+      
+      // Determinar si debemos guardar esta ronda
+      const shouldSave = 
+        currentRound <= 10 || // Primeras 10 rondas
+        currentRound % 10 === 0 || // Cada 10 rondas
+        isGameNearEndForSave(counts) || // Últimas rondas antes del final
+        isChaotic; // Siempre guardar eventos caóticos
+      
+      if (shouldSave) {
+        let description;
+        if (isChaotic) {
+          description = `💥 Caos: ${companyNames[winnerCompany]} surge de la mutación`;
+        } else {
+          description = `${companyNames[winnerCompany]} domina a ${companyNames[loserCompany]}`;
+        }
+        
+        const roundData = {
+          round: currentRound,
+          points: JSON.parse(JSON.stringify(points.map(p => ({ type: p.type, x: p.x, y: p.y, isElite: false })))),
+          counts: counts,
+          description: description,
+          collision: { x, y, winner: winnerType, loser: loserType, chaotic: isChaotic }
+        };
+        
+        roundHistory.push(roundData);
+        updateTimelineDisplay();
+      }
+    }
+    
+    function isGameNearEndForSave(counts) {
+      const typesLeft = Object.values(counts).filter(c => c > 0).length;
+      const minCount = Math.min(...Object.values(counts).filter(c => c > 0));
+      
+      // Guardar si quedan pocos puntos del tipo perdedor (últimas 10 rondas aproximadamente)
+      return typesLeft === 2 && minCount <= 10;
+    }
+
+    function updateTimelineDisplay() {
+      // Actualizar ambas versiones de currentRound y totalRounds
+      const currentDisplay = document.getElementById('currentRoundDisplay');
+      const currentDisplay2 = document.getElementById('currentRoundDisplay2');
+      const totalDisplay = document.getElementById('totalRoundsDisplay');
+      const totalDisplay2 = document.getElementById('totalRoundsDisplay2');
+      
+      if (currentDisplay) currentDisplay.textContent = currentRound;
+      if (currentDisplay2) currentDisplay2.textContent = currentRound;
+      
+      // Mostrar el round del último estado guardado
+      const lastSavedRound = roundHistory.length > 0 ? roundHistory[roundHistory.length - 1].round : 0;
+      if (totalDisplay) totalDisplay.textContent = lastSavedRound;
+      if (totalDisplay2) totalDisplay2.textContent = lastSavedRound;
+      
+      // Actualizar ambos sliders
+      const slider = document.getElementById('replaySlider');
+      const slider2 = document.getElementById('replaySlider2');
+      const maxValue = roundHistory.length - 1;
+      const currentValue = isReplaying ? (slider ? slider.value : maxValue) : maxValue;
+      
+      if (slider) {
+        slider.max = maxValue;
+        slider.value = currentValue;
+      }
+      if (slider2) {
+        slider2.max = maxValue;
+        slider2.value = currentValue;
+      }
+      
+      // Actualizar ambos progresos
+      const progress = document.getElementById('timelineProgress');
+      const progress2 = document.getElementById('timelineProgress2');
+      const progressPercent = lastSavedRound > 0 ? (currentRound / lastSavedRound) * 100 : 0;
+      const progressWidth = `${Math.min(progressPercent, 100)}%`;
+      
+      if (progress) progress.style.width = progressWidth;
+      if (progress2) progress2.style.width = progressWidth;
+      
+      // Actualizar marcadores
+      updateTimelineMarkers();
+    }
+
+    function updateTimelineMarkers() {
+      const markersContainer = document.getElementById('timelineMarkers');
+      const markersContainer2 = document.getElementById('timelineMarkers2');
+      
+      if (markersContainer) markersContainer.innerHTML = '';
+      if (markersContainer2) markersContainer2.innerHTML = '';
+      
+      if (roundHistory.length < 2) return;
+      
+      roundHistory.forEach((round, index) => {
+        if (index === 0) return; // Skip initial state
+        
+        // Crear marcadores para ambas versiones
+        [markersContainer, markersContainer2].forEach((container, containerIndex) => {
+          if (!container) return;
+          
+          const marker = document.createElement('div');
+          marker.className = 'timeline-marker';
+          
+          // Marcar rondas importantes
+          const prevRound = roundHistory[index - 1];
+          const significantChange = Object.keys(round.counts).some(key => 
+            Math.abs(round.counts[key] - prevRound.counts[key]) > 10
+          );
+          
+          // Marcar como major si es una ronda temprana, tardía o con cambio significativo
+          if (significantChange || round.round <= 10 || round.isWinner) {
+            marker.classList.add('major');
+          }
+          
+          const percentage = (index / (roundHistory.length - 1)) * 100;
+          marker.style.left = `${percentage}%`;
+          marker.title = `Ronda ${round.round}: ${round.description}`;
+          
+          marker.addEventListener('click', () => {
+            // Actualizar ambos sliders
+            const slider = document.getElementById('replaySlider');
+            const slider2 = document.getElementById('replaySlider2');
+            if (slider) slider.value = index;
+            if (slider2) slider2.value = index;
+            replayToRound(index);
+          });
+          
+          container.appendChild(marker);
+        });
+      });
+    }
+
+    function replayToRound(roundIndex) {
+      if (roundIndex >= roundHistory.length) return;
+      
+      isReplaying = true;
+      const roundData = roundHistory[roundIndex];
+      
+      // Restaurar estado de puntos
+      points.forEach((point, i) => {
+        if (roundData.points[i]) {
+          point.type = roundData.points[i].type;
+          point.x = roundData.points[i].x;
+          point.y = roundData.points[i].y;
+          point.isElite = roundData.points[i].isElite || false;
+        }
+      });
+      
+      // Actualizar HUD
+      updateHUD();
+      
+      // Actualizar ambos displays
+      const currentDisplay = document.getElementById('currentRoundDisplay');
+      const currentDisplay2 = document.getElementById('currentRoundDisplay2');
+      if (currentDisplay) currentDisplay.textContent = roundData.round;
+      if (currentDisplay2) currentDisplay2.textContent = roundData.round;
+      
+      // Dibujar estado inmediatamente
+      draw();
+      
+      // Marcar que estamos en replay
+      setTimeout(() => {
+        isReplaying = false;
+        // Asegurar que se redibuje el estado después del replay
+        draw();
+      }, 100);
+    }
+
+    function pauseGame() {
+      if (gameEnded) return; // No permitir pausar si el juego ya terminó
+      isPaused = true;
+      
+      // Actualizar ambos conjuntos de botones
+      const pauseBtn = document.getElementById('pauseBtn');
+      const pauseBtn2 = document.getElementById('pauseBtn2');
+      const playBtn = document.getElementById('playBtn');
+      const playBtn2 = document.getElementById('playBtn2');
+      
+      if (pauseBtn) pauseBtn.style.display = 'none';
+      if (pauseBtn2) pauseBtn2.style.display = 'none';
+      if (playBtn) playBtn.style.display = 'block';
+      if (playBtn2) playBtn2.style.display = 'block';
+    }
+
+    function resumeGame() {
+      if (gameEnded) return; // No permitir reanudar si el juego ya terminó
+      isPaused = false;
+      
+      // Actualizar ambos conjuntos de botones
+      const pauseBtn = document.getElementById('pauseBtn');
+      const pauseBtn2 = document.getElementById('pauseBtn2');
+      const playBtn = document.getElementById('playBtn');
+      const playBtn2 = document.getElementById('playBtn2');
+      
+      if (pauseBtn) pauseBtn.style.display = 'block';
+      if (pauseBtn2) pauseBtn2.style.display = 'block';
+      if (playBtn) playBtn.style.display = 'none';
+      if (playBtn2) playBtn2.style.display = 'none';
+      
+      if (!gameEnded) {
+        loop();
+      }
+    }
+
+    function goToLive() {
+      isReplaying = false;
+      isPaused = false;
+      
+      // Referencias a ambos conjuntos de botones
+      const pauseBtn = document.getElementById('pauseBtn');
+      const pauseBtn2 = document.getElementById('pauseBtn2');
+      const playBtn = document.getElementById('playBtn');
+      const playBtn2 = document.getElementById('playBtn2');
+      
+      // Solo mostrar controles de play/pause si el juego no ha terminado
+      if (!gameEnded) {
+        if (pauseBtn) pauseBtn.style.display = 'block';
+        if (pauseBtn2) pauseBtn2.style.display = 'block';
+        if (playBtn) playBtn.style.display = 'none';
+        if (playBtn2) playBtn2.style.display = 'none';
+      } else {
+        if (pauseBtn) pauseBtn.style.display = 'none';
+        if (pauseBtn2) pauseBtn2.style.display = 'none';
+        if (playBtn) playBtn.style.display = 'none';
+        if (playBtn2) playBtn2.style.display = 'none';
+      }
+      
+      // Ir al último estado guardado
+      if (roundHistory.length > 0) {
+        const lastRound = roundHistory[roundHistory.length - 1];
+        const slider = document.getElementById('replaySlider');
+        const slider2 = document.getElementById('replaySlider2');
+        
+        if (slider) slider.value = roundHistory.length - 1;
+        if (slider2) slider2.value = roundHistory.length - 1;
+        
+        replayToRound(roundHistory.length - 1);
+        
+        // Actualizar el currentRound al último round guardado
+        currentRound = lastRound.round;
+      }
+      
+      // Continuar simulación desde el último estado con la velocidad actual
+      if (!gameEnded) {
+        // Aplicar velocidad actual
+        speed = parseFloat(document.getElementById('speedSlider').value);
+        
+        // Actualizar velocidades de todos los puntos
+        points.forEach(p => {
+          const currentSpeed = Math.hypot(p.dx, p.dy);
+          if (currentSpeed > 0) {
+            p.dx = (p.dx / currentSpeed) * speed;
+            p.dy = (p.dy / currentSpeed) * speed;
+          } else {
+            // Si no tiene velocidad, darle una velocidad aleatoria
+            p.dx = (Math.random() - 0.5) * speed * 2;
+            p.dy = (Math.random() - 0.5) * speed * 2;
+          }
+        });
+        
+        loop();
+      }
+    }
+
+    function exportHistory() {
+      const historyData = {
+        timestamp: new Date().toISOString(),
+        totalRounds: roundHistory.length - 1,
+        finalCounts: roundHistory[roundHistory.length - 1]?.counts || {},
+        winner: gameEnded ? Object.keys(roundHistory[roundHistory.length - 1]?.counts || {}).find(k => roundHistory[roundHistory.length - 1]?.counts[k] > 0) : null,
+        rounds: roundHistory
+      };
+      
+      const dataStr = JSON.stringify(historyData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ai-talent-wars-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function restartGame() {
+      cancelAnimationFrame(animId);
+      speed = parseFloat(document.getElementById('speedSlider').value);
+      TOTAL = parseInt(document.getElementById('totalPoints').value);
+      particles = []; // Limpiar partículas
+      isReplaying = false;
+      isPaused = false;
+      
+      // Limpiar ambos timelines
+      roundHistory = [];
+      currentRound = 0;
+      
+      const slider = document.getElementById('replaySlider');
+      const slider2 = document.getElementById('replaySlider2');
+      const progress = document.getElementById('timelineProgress');
+      const progress2 = document.getElementById('timelineProgress2');
+      const markers = document.getElementById('timelineMarkers');
+      const markers2 = document.getElementById('timelineMarkers2');
+      
+      if (slider) { slider.value = 0; slider.max = 0; }
+      if (slider2) { slider2.value = 0; slider2.max = 0; }
+      if (progress) progress.style.width = '0%';
+      if (progress2) progress2.style.width = '0%';
+      if (markers) markers.innerHTML = '';
+      if (markers2) markers2.innerHTML = '';
+      
+      const pauseBtn = document.getElementById('pauseBtn');
+      const pauseBtn2 = document.getElementById('pauseBtn2');
+      const playBtn = document.getElementById('playBtn');
+      const playBtn2 = document.getElementById('playBtn2');
+      
+      if (pauseBtn) pauseBtn.style.display = 'block';
+      if (pauseBtn2) pauseBtn2.style.display = 'block';
+      if (playBtn) playBtn.style.display = 'none';
+      if (playBtn2) playBtn2.style.display = 'none';
+      resizeCanvas();
+      createPoints();
+      loop();
+    }
+
+    // Event listeners para personalización
+    function setupCustomizationListeners() {
+      // Listeners para nombres de empresas
+      document.getElementById('company1Name').addEventListener('input', (e) => {
+        companyNames.google = e.target.value || 'Google';
+        updateAllLabels();
+        saveCustomization();
+      });
+      
+      document.getElementById('company2Name').addEventListener('input', (e) => {
+        companyNames.openai = e.target.value || 'OpenAI';
+        updateAllLabels();
+        saveCustomization();
+      });
+      
+      document.getElementById('company3Name').addEventListener('input', (e) => {
+        companyNames.meta = e.target.value || 'Meta AI';
+        updateAllLabels();
+        saveCustomization();
+      });
+      
+      // Listeners para símbolos
+      document.getElementById('company1Symbol').addEventListener('input', (e) => {
+        companySymbols.google = e.target.value || 'G';
+        updateAllLabels();
+        saveCustomization();
+      });
+      
+      document.getElementById('company2Symbol').addEventListener('input', (e) => {
+        companySymbols.openai = e.target.value || 'OAI';
+        updateAllLabels();
+        saveCustomization();
+      });
+      
+      document.getElementById('company3Symbol').addEventListener('input', (e) => {
+        companySymbols.meta = e.target.value || 'M';
+        updateAllLabels();
+        saveCustomization();
+      });
+    }
+
+    // Event listeners
+    document.getElementById('restartBtn').addEventListener('click', restartGame);
+    
+    // Controles en tiempo real
+    document.getElementById('speedSlider').addEventListener('input', (e) => {
+      speed = parseFloat(e.target.value);
+    });
+    
+    document.getElementById('chaosSlider').addEventListener('input', (e) => {
+      const chaosLevel = parseFloat(e.target.value);
+      
+      // Configuración simple: solo 3 niveles
+      if (chaosLevel === 0) {
+        // Nivel 0: Juego clásico - cero caos
+        CHAOS_CONFIG.sameTypeCollisionRate = 0;
+        CHAOS_CONFIG.velocityVariation = 0.05;
+        CHAOS_CONFIG.sizeVariation = 0.05;
+      } else if (chaosLevel === 1) {
+        // Nivel 1: Caos ligero - pocas sorpresas
+        CHAOS_CONFIG.sameTypeCollisionRate = 0.02; // 2%
+        CHAOS_CONFIG.velocityVariation = 0.1;
+        CHAOS_CONFIG.sizeVariation = 0.05;
+      } else {
+        // Nivel 2: Caos moderado - más sorpresas
+        CHAOS_CONFIG.sameTypeCollisionRate = 0.05; // 5%
+        CHAOS_CONFIG.velocityVariation = 0.15;
+        CHAOS_CONFIG.sizeVariation = 0.08;
+      }
+    });
+
+    // Event listener para el slider de replay (mobile/tablet)
+    document.getElementById('replaySlider').addEventListener('input', (e) => {
+      const roundIndex = parseInt(e.target.value);
+      // Sincronizar con el segundo slider
+      const slider2 = document.getElementById('replaySlider2');
+      if (slider2) slider2.value = roundIndex;
+      replayToRound(roundIndex);
+    });
+
+    // Event listeners para los controles de replay (mobile/tablet)
+    document.getElementById('pauseBtn').addEventListener('click', pauseGame);
+    document.getElementById('playBtn').addEventListener('click', resumeGame);
+    document.getElementById('liveBtn').addEventListener('click', goToLive);
+    document.getElementById('exportBtn').addEventListener('click', exportHistory);
+    
+    // Event listeners para el segundo slider (desktop sidebar)
+    document.getElementById('replaySlider2').addEventListener('input', (e) => {
+      const roundIndex = parseInt(e.target.value);
+      // Sincronizar con el primer slider
+      const slider = document.getElementById('replaySlider');
+      if (slider) slider.value = roundIndex;
+      replayToRound(roundIndex);
+    });
+    
+    // Event listeners para los controles de replay del sidebar desktop
+    document.getElementById('pauseBtn2').addEventListener('click', pauseGame);
+    document.getElementById('playBtn2').addEventListener('click', resumeGame);
+    document.getElementById('liveBtn2').addEventListener('click', goToLive);
+    document.getElementById('exportBtn2').addEventListener('click', exportHistory);
+
+    // Event listener para redimensionamiento
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      draw(); // Redibujar cuando cambie el tamaño
+    });
+    
+    // Inicialización
+    loadCustomization();
+    setupCustomizationListeners();
+    resizeCanvas();
+    createPoints();
+    loop();
+  </script>
+</body>
+</html>
